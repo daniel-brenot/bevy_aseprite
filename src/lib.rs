@@ -36,6 +36,7 @@ impl Plugin for AsepritePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.init_asset::<Aseprite>()
             .register_asset_loader(loader::AsepriteLoader)
+            .init_asset::<Aseprite>()
             .add_systems(Update, loader::process_load)
             .add_systems(
                 Update,
