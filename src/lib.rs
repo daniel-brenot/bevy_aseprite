@@ -14,11 +14,11 @@ use bevy::{
         schedule::{IntoSystemConfigs, SystemSet},
     },
     reflect::TypePath,
-    render::texture::Image,
     sprite::TextureAtlasLayout,
     transform::components::{GlobalTransform, Transform},
 };
 
+use bevy::prelude::*;
 use bevy_aseprite_reader as reader;
 
 pub use bevy::sprite::TextureAtlasBuilder;
@@ -48,7 +48,7 @@ impl Plugin for AsepritePlugin {
     }
 }
 
-#[derive(Debug, Clone, TypePath, Asset)]
+#[derive(Debug, Default, Clone, TypePath, Asset, Component)]
 pub struct Aseprite {
     // Data is dropped after the atlas is built
     data: Option<reader::Aseprite>,
@@ -66,8 +66,9 @@ pub struct Aseprite {
 /// A bundle defining a drawn aseprite
 #[derive(Debug, Bundle, Default)]
 pub struct AsepriteBundle {
-    pub transform: Transform,
-    pub global_transform: GlobalTransform,
     pub animation: AsepriteAnimation,
-    pub aseprite: Handle<Aseprite>,
+    pub aseprite: AsepriteHandle,
 }
+
+#[derive(Component, Default, Debug)]
+pub struct AsepriteHandle(pub Handle<Aseprite>);

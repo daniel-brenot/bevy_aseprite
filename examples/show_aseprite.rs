@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_aseprite::{anim::AsepriteAnimation, AsepriteBundle, AsepritePlugin};
+use bevy_aseprite::{anim::AsepriteAnimation, AsepriteBundle, AsepritePlugin, AsepriteHandle};
 
 #[derive(Component, Clone, Copy, Debug)]
 struct CrowTag;
@@ -30,29 +30,33 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
 
     commands
-        .spawn(AsepriteBundle {
-            aseprite: asset_server.load(sprites::Crow::PATH),
-            animation: AsepriteAnimation::from(sprites::Crow::tags::FLAP_WINGS),
-            transform: Transform {
+        .spawn((
+            AsepriteBundle {
+                aseprite: AsepriteHandle(asset_server.load(sprites::Crow::PATH)),
+                animation: AsepriteAnimation::from(sprites::Crow::tags::FLAP_WINGS),
+                ..Default::default()
+            }, 
+            Transform {
                 scale: Vec3::splat(4.),
                 translation: Vec3::new(0., 80., 0.),
                 ..Default::default()
             },
-            ..Default::default()
-        })
+        ))
         .insert(CrowTag);
 
     commands
-        .spawn(AsepriteBundle {
-            aseprite: asset_server.load(sprites::Player::PATH),
-            animation: AsepriteAnimation::from(sprites::Player::tags::LEFT_WALK),
-            transform: Transform {
+        .spawn((
+            AsepriteBundle {
+                aseprite: AsepriteHandle(asset_server.load(sprites::Player::PATH)),
+                animation: AsepriteAnimation::from(sprites::Player::tags::LEFT_WALK),
+                ..Default::default()
+            },
+            Transform {
                 scale: Vec3::splat(4.),
                 translation: Vec3::new(0., -100., 0.),
                 ..Default::default()
             },
-            ..Default::default()
-        })
+        ))
         .insert(PlayerTag);
 }
 
@@ -80,7 +84,7 @@ fn change_animation(
         }
     }
 
-    if keys.pressed(KeyCode::S) {
+    if keys.pressed(KeyCode::KeyS) {
         for mut crow_anim in aseprites.p0().iter_mut() {
             crow_anim.custom_size = Some(crow_anim.custom_size.unwrap_or(Vec2::splat(40.)) + Vec2::splat(- 2.));
         }
@@ -89,7 +93,7 @@ fn change_animation(
         }
     }
 
-    if keys.pressed(KeyCode::W) {
+    if keys.pressed(KeyCode::KeyW) {
         for mut crow_anim in aseprites.p0().iter_mut() {
             crow_anim.custom_size = Some(crow_anim.custom_size.unwrap_or(Vec2::splat(40.)) + Vec2::splat(2.));
         }

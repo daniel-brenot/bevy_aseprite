@@ -1,6 +1,6 @@
 use crate::{anim::AsepriteAnimation, error, Aseprite};
 use bevy::{
-    asset::{AssetLoader, AsyncReadExt},
+    asset::{io::Reader, AssetLoader, AsyncReadExt},
     prelude::*,
     render::{
         render_asset::RenderAssetUsages,
@@ -17,26 +17,24 @@ impl AssetLoader for AsepriteLoader {
     type Settings = ();
     type Error = error::AsepriteLoaderError;
 
-    fn load<'a>(
-        &'a self,
-        reader: &'a mut bevy::asset::io::Reader,
-        _settings: &'a Self::Settings,
-        load_context: &'a mut bevy::asset::LoadContext,
-    ) -> bevy::utils::BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
-        Box::pin(async move {
-            debug!("Loading aseprite at {:?}", load_context.path());
+    async fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &Self::Settings,
+        load_context: &mut bevy::asset::LoadContext<'_>,
+    ) -> Result<Self::Asset, Self::Error> {
+        debug!("Loading aseprite at {:?}", load_context.path());
 
-            let mut buffer = vec![];
-            let _ = reader.read_to_end(&mut buffer).await?;
-            let data = Some(reader::Aseprite::from_bytes(buffer)?);
+        let mut buffer = vec![];
+        let _ = reader.read_to_end(&mut buffer).await?;
+        let data = Some(reader::Aseprite::from_bytes(buffer)?);
 
-            Ok(Aseprite {
-                data,
-                info: None,
-                frame_to_idx: vec![],
-                atlas: None,
-                image: None,
-            })
+        Ok(Aseprite {
+            data,
+            info: None,
+            frame_to_idx: vec![],
+            atlas: None,
+            image: None,
         })
     }
 
@@ -111,7 +109,7 @@ pub(crate) fn process_load(
                 frame_handles.push(texture_handle.clone_weak());
                 atlas.add_texture(Some(texture_handle.id()), texture);
             }
-            let (atlas, image) = match atlas.finish() {
+            let (atlas, sources, image) = match atlas.build() {
                 Ok(atlas) => atlas,
                 Err(err) => {
                     error!("{:?}", err);
@@ -119,7 +117,7 @@ pub(crate) fn process_load(
                 }
             };
             for handle in frame_handles {
-                let atlas_idx = atlas.get_texture_index(&handle).unwrap();
+                let atlas_idx =  sources.texture_index(&handle).unwrap();
                 ase.frame_to_idx.push(atlas_idx);
             }
             let atlas_handle = atlases.add(atlas);
@@ -133,22 +131,12 @@ pub(crate) fn process_load(
 
 pub(crate) fn insert_sprite_sheet(
     mut commands: Commands,
-    aseprites: ResMut<Assets<Aseprite>>,
     mut query: Query<
-        (Entity, &Transform, &Handle<Aseprite>),
-        (Without<TextureAtlas>, With<AsepriteAnimation>),
+        (Entity, &Transform, &Aseprite),
+        (Without<Sprite>, With<AsepriteAnimation>),
     >,
 ) {
-    for (entity, &transform, handle) in query.iter_mut() {
-        // FIXME The first time the query runs the aseprite atlas might not be ready
-        // so failing to find it is expected.
-        let aseprite = match aseprites.get(handle) {
-            Some(aseprite) => aseprite,
-            None => {
-                debug!("Aseprite handle invalid");
-                continue;
-            }
-        };
+    for (entity, &transform, aseprite) in query.iter_mut() {
         let mut atlas = match aseprite.atlas.clone() {
             Some(atlas) => atlas,
             None => {
@@ -163,14 +151,17 @@ pub(crate) fn insert_sprite_sheet(
                 continue;
             }
         };
-        commands.entity(entity).insert(SpriteSheetBundle {
-            atlas: TextureAtlas {
-                layout: atlas,
-                index: 0,
+        commands.entity(entity).insert((
+            Sprite {
+                texture_atlas: Some(TextureAtlas {
+                    layout: atlas,
+                    index: 0,
+                }),
+                image: image,
+                ..Default::default()
             },
-            texture: image,
-            transform,
-            ..Default::default()
-        });
+            transform
+            )
+        );
     }
 }
