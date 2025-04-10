@@ -139,7 +139,7 @@ pub(crate) fn insert_sprite_sheet(
 ) {
     for (entity, &transform, aseprite_handle) in query.iter_mut() {
         let aseprite = aseprites.get(&aseprite_handle.0).unwrap();
-        let mut atlas = match aseprite.atlas.clone() {
+        let atlas = match aseprite.atlas.clone() {
             Some(atlas) => atlas,
             None => {
                 debug!("Aseprite atlas not ready");
