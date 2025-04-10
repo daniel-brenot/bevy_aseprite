@@ -1,4 +1,4 @@
-use crate::{anim::AsepriteAnimation, error, Aseprite};
+use crate::{anim::AsepriteAnimation, error, Aseprite, AsepriteHandle};
 use bevy::{
     asset::{io::Reader, AssetLoader, AsyncReadExt},
     prelude::*,
@@ -131,12 +131,14 @@ pub(crate) fn process_load(
 
 pub(crate) fn insert_sprite_sheet(
     mut commands: Commands,
+    aseprites: Res<Assets<Aseprite>>,
     mut query: Query<
-        (Entity, &Transform, &Aseprite),
+        (Entity, &Transform, &AsepriteHandle),
         (Without<Sprite>, With<AsepriteAnimation>),
     >,
 ) {
-    for (entity, &transform, aseprite) in query.iter_mut() {
+    for (entity, &transform, aseprite_handle) in query.iter_mut() {
+        let aseprite = aseprites.get(&aseprite_handle.0).unwrap();
         let mut atlas = match aseprite.atlas.clone() {
             Some(atlas) => atlas,
             None => {

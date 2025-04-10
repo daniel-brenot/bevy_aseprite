@@ -2,8 +2,8 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::{Aseprite, AsepriteInfo};
-use bevy_aseprite_reader as reader;
+use crate::{AsepriteInfo, AsepriteHandle, Aseprite};
+use bevy_aseprite_reader::{self as reader};
 
 /// A tag representing an animation
 #[derive(Debug, Default, Component, Copy, Clone, PartialEq, Eq)]
@@ -83,6 +83,7 @@ impl AsepriteAnimation {
     }
 
     fn next_frame(&mut self, info: &AsepriteInfo) {
+        print!("next frame");
         match &self.tag {
             Some(tag) => {
                 let tag = match info.tags.get(tag) {
@@ -208,9 +209,11 @@ impl AsepriteAnimation {
 
 pub(crate) fn update_animations(
     time: Res<Time>,
-    mut aseprites_query: Query<(&Aseprite, &mut AsepriteAnimation, &mut Sprite)>,
+    mut aseprites_query: Query<(&AsepriteHandle, &mut AsepriteAnimation, &mut Sprite)>,
+    aseprites: Res<Assets<Aseprite>>,
 ) {
-    for (aseprite, mut animation, mut sprite) in aseprites_query.iter_mut() {
+    for (aseprite_handle, mut animation, mut sprite) in aseprites_query.iter_mut() {
+        let aseprite = aseprites.get(&aseprite_handle.0).unwrap();
         let info = match &aseprite.info {
             Some(info) => info,
             None => {
@@ -221,7 +224,7 @@ pub(crate) fn update_animations(
 
         sprite.custom_size = animation.custom_size;
 
-        if animation.update(info, time.delta()) {
+        if animation.update(&info, time.delta()) {
             if let Some(atlas) = sprite.texture_atlas.as_mut() {
                 atlas.index = aseprite.frame_to_idx[animation.current_frame];
             }

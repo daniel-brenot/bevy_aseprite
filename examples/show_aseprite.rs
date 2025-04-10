@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 use bevy_aseprite::{anim::AsepriteAnimation, AsepriteBundle, AsepritePlugin, AsepriteHandle};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
+
 
 #[derive(Component, Clone, Copy, Debug)]
 struct CrowTag;
@@ -21,13 +23,14 @@ fn main() {
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(AsepritePlugin)
         .add_systems(Startup, setup)
-        .add_systems(Startup, setup_text)
         .add_systems(Update, change_animation)
+        .add_plugins(WorldInspectorPlugin::new())
         .run();
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle::default());
+    println!("setup");
+    commands.spawn(Camera2d::default());
 
     commands
         .spawn((
@@ -110,116 +113,4 @@ fn change_animation(
             player_anim.toggle();
         }
     }
-}
-
-fn setup_text(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let font = asset_server.load("Share-Regular.ttf");
-
-    let text_style = TextStyle {
-        font: font.clone(),
-        font_size: 30.,
-        ..Default::default()
-    };
-
-    let credits_text_style = TextStyle {
-        font,
-        font_size: 20.,
-        ..Default::default()
-    };
-
-    commands.spawn(Text2dBundle {
-        text: Text {
-            justify: JustifyText::Center,
-            sections: vec![TextSection {
-                value: String::from("Press '1' and '2' to switch animations."),
-                style: TextStyle {
-                    color: Color::WHITE,
-                    ..text_style.clone()
-                },
-            }],
-            ..Default::default()
-        },
-        transform: Transform::from_translation(Vec3::new(0., 300., 0.)),
-        ..Default::default()
-    });
-
-    commands.spawn(Text2dBundle {
-        text: Text {
-            justify: JustifyText::Center,
-            sections: vec![TextSection {
-                value: String::from("Press 'space' to pause."),
-                style: TextStyle {
-                    color: Color::WHITE,
-                    ..text_style.clone()
-                },
-            }],
-            ..Default::default()
-        },
-        transform: Transform::from_translation(Vec3::new(0., 250., 0.)),
-        ..Default::default()
-    });
-
-    commands.spawn(Text2dBundle {
-        text: Text {
-            justify: JustifyText::Center,
-            sections: vec![
-                TextSection {
-                    value: String::from("The crow was made by "),
-                    style: TextStyle {
-                        color: Color::WHITE,
-                        ..credits_text_style.clone()
-                    },
-                },
-                TextSection {
-                    value: String::from("meitdev"),
-                    style: TextStyle {
-                        color: Color::LIME_GREEN,
-                        ..credits_text_style.clone()
-                    },
-                },
-                TextSection {
-                    value: String::from(" on itch.io"),
-                    style: TextStyle {
-                        color: Color::WHITE,
-                        ..credits_text_style.clone()
-                    },
-                },
-            ],
-            ..Default::default()
-        },
-        transform: Transform::from_translation(Vec3::new(0., -250., 0.)),
-        ..Default::default()
-    });
-
-    commands.spawn(Text2dBundle {
-        text: Text {
-            justify: JustifyText::Center,
-            sections: vec![
-                TextSection {
-                    value: String::from("The human was made by "),
-                    style: TextStyle {
-                        color: Color::WHITE,
-                        ..credits_text_style.clone()
-                    },
-                },
-                TextSection {
-                    value: String::from("shubibubi"),
-                    style: TextStyle {
-                        color: Color::BLUE,
-                        ..credits_text_style.clone()
-                    },
-                },
-                TextSection {
-                    value: String::from(" on itch.io"),
-                    style: TextStyle {
-                        color: Color::WHITE,
-                        ..credits_text_style
-                    },
-                },
-            ],
-            ..Default::default()
-        },
-        transform: Transform::from_translation(Vec3::new(0., -280., 0.)),
-        ..Default::default()
-    });
 }
