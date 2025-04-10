@@ -10,10 +10,9 @@ use bevy::{
     app::{Plugin, Update},
     asset::{Asset, AssetApp, Handle},
     ecs::{
-        bundle::Bundle,
-        schedule::{IntoSystemConfigs, SystemSet},
+        bundle::Bundle, component::Component, schedule::{IntoSystemConfigs, SystemSet}
     },
-    reflect::{TypePath, TypeUuid},
+    reflect::TypePath,
     sprite::TextureAtlas,
     transform::components::{GlobalTransform, Transform},
 };
@@ -38,17 +37,12 @@ impl Plugin for AsepritePlugin {
             .add_systems(Update, loader::process_load)
             .add_systems(
                 Update,
-                loader::insert_sprite_sheet.in_set(AsepriteSystems::InsertSpriteSheet),
-            )
-            .add_systems(
-                Update,
                 anim::update_animations.after(AsepriteSystems::InsertSpriteSheet),
             );
     }
 }
 
-#[derive(Debug, Clone, TypePath, TypeUuid, Asset)]
-#[uuid = "b29abc81-6179-42e4-b696-3a5a52f44f73"]
+#[derive(Debug, Default, Clone, TypePath, Asset, Component)]
 pub struct Aseprite {
     // Data is dropped after the atlas is built
     data: Option<reader::Aseprite>,
@@ -57,8 +51,6 @@ pub struct Aseprite {
     // TextureAtlasBuilder might shift the index order when building so
     // we keep a mapping of frame# -> atlas index here
     frame_to_idx: Vec<usize>,
-    // Atlas that gets built from the frame info of the aseprite file
-    atlas: Option<Handle<TextureAtlas>>,
 }
 
 /// A bundle defining a drawn aseprite
@@ -67,5 +59,5 @@ pub struct AsepriteBundle {
     pub transform: Transform,
     pub global_transform: GlobalTransform,
     pub animation: AsepriteAnimation,
-    pub aseprite: Handle<Aseprite>,
+    pub aseprite: Aseprite,
 }
