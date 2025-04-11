@@ -144,7 +144,14 @@ impl AsepriteAnimation {
     }
 
     pub fn current_frame_duration(&self, info: &AsepriteInfo) -> Duration {
-        Duration::from_millis(info.frame_infos[self.current_frame].delay_ms as u64)
+        Duration::from_secs_f64(
+            Duration::from_millis(info.frame_infos[self.current_frame].delay_ms as u64).as_secs_f64()
+            * self.frame_duration_multiplier(info)
+        )
+    }
+
+    pub fn frame_duration_multiplier(&self, info: &AsepriteInfo) -> f64 {
+        info.animation_duration_ms as f64 / info.frame_count as f64
     }
 
     // Returns whether the frame was changed

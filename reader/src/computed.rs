@@ -1,7 +1,7 @@
 use std::{
     collections::{BTreeMap, HashMap},
     ops::{Index, Range},
-    path::Path,
+    path::Path, time::Duration,
 };
 
 use image::{Pixel, Rgba, RgbaImage};
@@ -21,6 +21,7 @@ use crate::{
 /// Data structure representing an Aseprite file
 pub struct Aseprite {
     dimensions: (u16, u16),
+    animation_duration_ms: usize,
     tags: HashMap<String, AsepriteTag>,
     slices: HashMap<String, AsepriteSlice>,
     layers: BTreeMap<usize, AsepriteLayer>,
@@ -184,6 +185,7 @@ impl Aseprite {
                 }
             }
         }
+        let animation_duration_ms = frame_infos.iter().map(|f|{f.delay_ms}).sum();
 
         Ok(Aseprite {
             dimensions: (raw.header.width, raw.header.height),
@@ -198,6 +200,7 @@ impl Aseprite {
             palette,
             frame_infos,
             slices,
+            animation_duration_ms
         })
     }
 
@@ -222,6 +225,7 @@ impl Aseprite {
 #[derive(Debug, Clone)]
 pub struct AsepriteInfo {
     pub dimensions: (u16, u16),
+    pub animation_duration_ms: usize,
     pub tags: HashMap<String, AsepriteTag>,
     pub slices: HashMap<String, AsepriteSlice>,
     pub frame_count: usize,
@@ -234,6 +238,7 @@ impl Into<AsepriteInfo> for Aseprite {
     fn into(self) -> AsepriteInfo {
         AsepriteInfo {
             dimensions: self.dimensions,
+            animation_duration_ms: self.animation_duration_ms,
             tags: self.tags,
             slices: self.slices,
             frame_count: self.frame_count,
