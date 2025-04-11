@@ -83,7 +83,6 @@ impl AsepriteAnimation {
     }
 
     fn next_frame(&mut self, info: &AsepriteInfo) {
-        print!("next frame");
         match &self.tag {
             Some(tag) => {
                 let tag = match info.tags.get(tag) {
