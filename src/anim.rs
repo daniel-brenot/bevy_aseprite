@@ -30,6 +30,7 @@ pub struct AsepriteAnimation {
     tag: Option<String>,
     pub current_frame: usize,
     pub custom_size: Option<Vec2>,
+    pub animation_total_duration_ms: Option<u64>,
     forward: bool,
     time_elapsed: Duration,
     tag_changed: bool,
@@ -42,6 +43,7 @@ impl Default for AsepriteAnimation {
             tag: Default::default(),
             current_frame: Default::default(),
             custom_size: None,
+            animation_total_duration_ms: None,
             forward: Default::default(),
             time_elapsed: Default::default(),
             tag_changed: true,
@@ -151,7 +153,10 @@ impl AsepriteAnimation {
     }
 
     pub fn frame_duration_multiplier(&self, info: &AsepriteInfo) -> f64 {
-        info.animation_duration_ms as f64 / info.frame_count as f64
+        match self.animation_total_duration_ms {
+            Some(total_duration_ms) => total_duration_ms as f64 / info.animation_duration_ms as f64,
+            None => 1.0,
+        }
     }
 
     // Returns whether the frame was changed
